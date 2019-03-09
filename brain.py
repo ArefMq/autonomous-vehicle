@@ -1,7 +1,9 @@
 import numpy as np
 import cv2
-from scipy import ndimage
+import json
+import os
 from time import time
+from scipy import ndimage
 from functools import wraps
 
 from utils.config import Config
@@ -37,11 +39,35 @@ class Brain:
         model_type = 'trainval'
         model_weight = './model/cityscapes/icnet_cityscapes_train_30k.npy'
 
+    class HotReloadConfigs:
+        def __init__(self, config_file_path='config.json'):
+            self.last_modified = 0
+            self.config = None
+            self.path = config_file_path
+            self.reload()
+
+        def reload(self):
+            stat = os.stat(self.path)
+            if stat.st_mtime != self.last_modified:
+                print 'reloading'
+                try:
+                    with open(self.path) as f:
+                        self.config = json.load(f)
+                    self.last_modified = stat.st_mtime
+                    return True
+                except (IOError, ValueError, KeyError):
+                    print('can not reload config')
+            return False
+
+        def __getattr__(self, name):
+            return self.config[name]
+
     def __init__(self, inner_size=SIZE_HD, exponential_filter_alpha=0.9):
         self.last_theta = 0
         self.alpha = exponential_filter_alpha
         self.cycle_time = None
         self.average_cycle_time = None
+        self.config = Brain.HotReloadConfigs()
 
         print('Configuring Brain')
         self.cfg = Brain.InferenceConfig(dataset, is_training=False, filter_scale=filter_scale)
@@ -61,28 +87,39 @@ class Brain:
         return self.last_theta
 
     @timer
-    def process(self, image, smooth_result=False):
+    def process(self, image):
         if image.shape != self.cfg.INFER_SIZE:
             print('[WARNING]: Image not in the correct size. Resizing...')
             image = cv2.resize(image, (self.cfg.INFER_SIZE[1], self.cfg.INFER_SIZE[0]))
 
-        ##############################
+        self.config.reload()
+        c = self.run_network(image)
+
+        # calculate theta
+        theta = np.arctan2((int(c[0]) - image.shape[0]), (int(c[1]) - int(image.shape[1] / 2)))
+        if self.config.output_type == "one_to_one":
+            theta = (np.arctan2((int(c[0]) - image.shape[0]), (int(c[1]) - int(image.shape[1] / 2))) / np.pi)
+        elif self.config.output_type == "degree":
+            theta = (theta / np.pi) * 180.0
+            theta = (theta + 90.0) / 90.0
+        elif self.config.output_type == "radian":
+            pass
+
+        # apply gain and offset
+        theta = theta * self.config.gain + self.config.offset
+
+        if self.config.smooth_result:
+            return self.exp_filter(theta)
+        return theta
+
+    def run_network(self, image):
         results1 = self.net.predict(image)
         a = results1[0].copy() / 255
-        # my_im1 = image.copy()
         a[a[:, :, 0] > 0.502] = 0
         a[a[:, :, 0] < 0.501] = 0
-
         a[a[:, :, 1] > 0.26] = 0
         a[a[:, :, 1] < 0.24] = 0
-
         a[a[:, :, 2] > 0.502] = 0
         a[a[:, :, 2] < 0.501] = 0
         c = ndimage.measurements.center_of_mass(a)
-        theta = (np.arctan2((int(c[0]) - image.shape[0]), (int(c[1]) - int(image.shape[1] / 2))) / np.pi) * 180
-        theta = (theta + 90) / 90
-        ##############################
-
-        if smooth_result:
-            return self.exp_filter(theta)
-        return theta
+        return c
