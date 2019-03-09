@@ -1,0 +1,41 @@
+# Device: left_steer            controller.Motor;
+# Device: left_steer_sensor     controller.PositionSensor;
+# Device: left_front_wheel      controller.Motor;
+# Device: left_front_sensor     controller.PositionSensor;
+# Device: left_front_brake      controller.Brake;
+# Device: right_steer           controller.Motor;
+# Device: right_steer_sensor    controller.PositionSensor;
+# Device: right_front_wheel     controller.Motor;
+# Device: right_front_sensor    controller.PositionSensor;
+# Device: right_front_brake     controller.Brake;
+# Device: left_rear_sensor      controller.PositionSensor;
+# Device: left_rear_brake       controller.Brake;
+# Device: right_rear_sensor     controller.PositionSensor;
+# Device: right_rear_brake      controller.Brake;
+# Device: engine_speaker        controller.Speaker;
+# Device: Sick LMS 291          controller.Lidar;
+
+# Device: camera    controller.Camera;
+# Device: gps       controller.GPS;
+# Device: gyro      controller.Gyro;
+# Device: display   controller.Display;
+
+# Device: front_lights              controller.LED;
+# Device: right_indicators          controller.LED;
+# Device: left_indicators           controller.LED;
+# Device: antifog_lights            controller.LED;
+# Device: brake_ligths              controller.LED;
+# Device: rear_lights               controller.LED;
+# Device: backwards_lights          controller.LED;
+# Device: interior_right_indicators controller.LED;
+# Device: interior_left_indicators  controller.LED;
+
+# Device: right_wiper_motor             controller.Motor;
+# Device: wiper_sensor                  controller.PositionSensor;
+# Device: left_wiper_motor              controller.Motor;
+# Device: indicator_lever_motor         controller.Motor;
+# Device: rear_yaw_mirror_frame_motor   controller.Motor;
+# Device: rear_pitch_mirror_frame_motor controller.Motor;
+# Device: steering_wheel_motor          controller.Motor;
+# Device: speed_needle_motor            controller.Motor;
+# Device: rpm_needle_motor              controller.Motor;

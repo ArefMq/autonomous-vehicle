@@ -1,0 +1,132 @@
+from controller import Robot
+from controller import Compass
+from vehicle import Driver
+import math
+
+driver = Driver()
+timeStep = int(driver.getBasicTimeStep())
+
+#print available devices
+print '---------------------------------------'
+for i in range(driver.getNumberOfDevices()):
+    print '~ Device:', driver.getDeviceByIndex(i).getName(), ' ===> ', driver.getDeviceByIndex(i)
+print '---------------------------------------'
+
+
+# Device: left_steer        controller.Motor; proxy of <Swig Object of type 'webots::Motor *' at 0x101875bd0> >
+# Device: left_steer_sensor controller.PositionSensor; proxy of <Swig Object of type 'webots::PositionSensor *' at 0x101875b70> >
+# Device: left_front_wheel  controller.Motor; proxy of <Swig Object of type 'webots::Motor *' at 0x101875c00> >
+# Device: left_front_sensor controller.PositionSensor; proxy of <Swig Object of type 'webots::PositionSensor *' at 0x101875c60> >
+# Device: left_front_brake  controller.Brake; proxy of <Swig Object of type 'webots::Brake *' at 0x101875c90> >
+# Device: right_steer       controller.Motor; proxy of <Swig Object of type 'webots::Motor *' at 0x101875c30> >
+# Device: right_steer_sensor    controller.PositionSensor; proxy of <Swig Object of type 'webots::PositionSensor *' at 0x101875cc0> >
+# Device: right_front_wheel     controller.Motor; proxy of <Swig Object of type 'webots::Motor *' at 0x101875cf0> >
+# Device: right_front_sensor    controller.PositionSensor; proxy of <Swig Object of type 'webots::PositionSensor *' at 0x101875d50> >
+# Device: right_front_brake     controller.Brake; proxy of <Swig Object of type 'webots::Brake *' at 0x101875d80> >
+# Device: left_rear_sensor      controller.PositionSensor; proxy of <Swig Object of type 'webots::PositionSensor *' at 0x101875db0> >
+# Device: left_rear_brake       controller.Brake; proxy of <Swig Object of type 'webots::Brake *' at 0x101875de0> >
+# Device: right_rear_sensor     controller.PositionSensor; proxy of <Swig Object of type 'webots::PositionSensor *' at 0x101875e10> >
+# Device: right_rear_brake      controller.Brake; proxy of <Swig Object of type 'webots::Brake *' at 0x101875e40> >
+# Device: engine_speaker        controller.Speaker; proxy of <Swig Object of type 'webots::Speaker *' at 0x101875e70> >
+# Device: Sick LMS 291          controller.Lidar; proxy of <Swig Object of type 'webots::Lidar *' at 0x101875ea0> >
+# Device: camera    controller.Camera; proxy of <Swig Object of type 'webots::Camera *' at 0x101875d20> >
+# Device: gps       controller.GPS; proxy of <Swig Object of type 'webots::GPS *' at 0x101875ed0> >
+# Device: gyro      controller.Gyro; proxy of <Swig Object of type 'webots::Gyro *' at 0x101875f30> >
+# Device: display   controller.Display; proxy of <Swig Object of type 'webots::Display *' at 0x101875f00> >
+# Device: front_lights      controller.LED; proxy of <Swig Object of type 'webots::LED *' at 0x101875f90> >
+# Device: right_indicators  controller.LED; proxy of <Swig Object of type 'webots::LED *' at 0x101875f60> >
+# Device: left_indicators   controller.LED; proxy of <Swig Object of type 'webots::LED *' at 0x101875fc0> >
+# Device: antifog_lights    controller.LED; proxy of <Swig Object of type 'webots::LED *' at 0x1018ea060> >
+# Device: brake_ligths      controller.LED; proxy of <Swig Object of type 'webots::LED *' at 0x1018ea090> >
+# Device: rear_lights       controller.LED; proxy of <Swig Object of type 'webots::LED *' at 0x1018ea030> >
+# Device: backwards_lights          controller.LED; proxy of <Swig Object of type 'webots::LED *' at 0x1018ea0c0> >
+# Device: interior_right_indicators controller.LED; proxy of <Swig Object of type 'webots::LED *' at 0x1018ea0f0> >
+# Device: interior_left_indicators  controller.LED; proxy of <Swig Object of type 'webots::LED *' at 0x1018ea150> >
+# Device: right_wiper_motor         controller.Motor; proxy of <Swig Object of type 'webots::Motor *' at 0x1018ea180> >
+# Device: wiper_sensor              controller.PositionSensor; proxy of <Swig Object of type 'webots::PositionSensor *' at 0x1018ea1b0> >
+# Device: left_wiper_motor          controller.Motor; proxy of <Swig Object of type 'webots::Motor *' at 0x1018ea1e0> >
+# Device: indicator_lever_motor     controller.Motor; proxy of <Swig Object of type 'webots::Motor *' at 0x1018ea210> >
+# Device: rear_yaw_mirror_frame_motor   controller.Motor; proxy of <Swig Object of type 'webots::Motor *' at 0x1018ea240> >
+# Device: rear_pitch_mirror_frame_motor controller.Motor; proxy of <Swig Object of type 'webots::Motor *' at 0x1018ea270> >
+# Device: steering_wheel_motor          controller.Motor; proxy of <Swig Object of type 'webots::Motor *' at 0x1018ea2a0> >
+# Device: speed_needle_motor            controller.Motor; proxy of <Swig Object of type 'webots::Motor *' at 0x1018ea2d0> >
+# Device: rpm_needle_motor              controller.Motor; proxy of <Swig Object of type 'webots::Motor *' at 0x1018ea300> >
+
+
+right_indicators = driver.getLED('right_indicators')
+left_indicators = driver.getLED('left_indicators')
+gps = driver.getGPS('gps')
+
+gps.enable(timeStep)
+#left_indicators.set(True)
+
+driver.step()
+initial_yaw = gps.getValues()[0]
+frame = 0
+prev_b = False
+while driver.step() != -1:
+    car_yaw = math.fabs(gps.getValues()[0] - initial_yaw)
+    if car_yaw > 3:
+        break
+    print car_yaw
+    driver.setSteeringAngle(0.4)
+    driver.setCruisingSpeed(3)
+
+    b = (frame / 10) % 2 == 0
+    if prev_b != b:
+        right_indicators.set(b)
+        prev_b = b
+    frame += 1
+
+# Stop
+driver.setSteeringAngle(0.0)
+driver.setCruisingSpeed(0)
+
+
+## name of the available distance sensors
+#sensorsNames = [
+#                'front',
+#                'front right 0',
+#                'front right 1',
+#                'front right 2',
+#                'front left 0',
+#                'front left 1',
+#                'front left 2',
+#                'rear',
+#                'rear left',
+#                'rear right',
+#                'right',
+#                'left']
+#sensors = {}
+
+#maxSpeed = 80
+#
+#driver.setSteeringAngle(0.0)  # go straight
+#
+## get and enable the distance sensors
+#for name in sensorsNames:
+#    sensors[name] = driver.getDistanceSensor('distance sensor ' + name)
+#    sensors[name].enable(10)
+#
+## get and enable the GPS
+#gps = driver.getGPS('gps')
+#gps.enable(10)
+#
+## get the camera
+#camera = driver.getCamera('camera')
+## uncomment those lines to enable the camera
+## camera.enable(50)
+## camera.recognitionEnable(50)
+#
+#while driver.step() != -1:
+#    # adjust the speed according to the value returned by the front distance sensor
+#    frontDistance = sensors['front'].getValue()
+#    frontRange = sensors['front'].getMaxValue()
+#    speed = maxSpeed * frontDistance / frontRange
+#    driver.setCruisingSpeed(speed)
+#    # brake if we need to reduce the speed
+#    speedDiff = driver.getCurrentSpeed() - speed
+#    if speedDiff > 0:
+#        driver.setBrakeIntensity(min(speedDiff / speed, 1))
+#    else:
+#        driver.setBrakeIntensity(0)
