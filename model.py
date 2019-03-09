@@ -3,20 +3,27 @@ from network import Network
 from utils.image_reader import _infer_preprocess
 from utils.visualize import decode_labels
 
+import sys
+PYTHON_VERSION_3 = sys.version_info.major == 3
+
 class ICNet(Network):
     def __init__(self, cfg, mode, image_reader=None):
         self.cfg = cfg
         self.mode = mode
 
         if mode == 'train':
-            self.images, self.labels = image_reader.next_image, image_reader.next_label    
-        
-            super(ICNet, self).__init__(inputs={'data': self.images}, cfg=self.cfg)
+            self.images, self.labels = image_reader.next_image, image_reader.next_label
+            if PYTHON_VERSION_3:
+                super().__init__(inputs={'data': self.images}, cfg=self.cfg)
+            else:
+                super(ICNet, self).__init__(inputs={'data': self.images}, cfg=self.cfg)
 
         elif mode == 'eval':
-            self.images, self.labels = image_reader.next_image, image_reader.next_label    
-        
-            super(ICNet, self).__init__(inputs={'data': self.images}, cfg=self.cfg)
+            self.images, self.labels = image_reader.next_image, image_reader.next_label
+            if PYTHON_VERSION_3:
+                super().__init__(inputs={'data': self.images}, cfg=self.cfg)
+            else:
+                super(ICNet, self).__init__(inputs={'data': self.images}, cfg=self.cfg)
             
             self.output = self.get_output_node()
 
@@ -24,8 +31,10 @@ class ICNet(Network):
             # Create placeholder and pre-process here.
             self.img_placeholder = tf.placeholder(dtype=tf.float32, shape=cfg.INFER_SIZE)
             self.images, self.o_shape, self.n_shape = _infer_preprocess(self.img_placeholder)
-            
-            super(ICNet, self).__init__(inputs={'data': self.images}, cfg=self.cfg)
+            if PYTHON_VERSION_3:
+                super().__init__(inputs={'data': self.images}, cfg=self.cfg)
+            else:
+                super(ICNet, self).__init__(inputs={'data': self.images}, cfg=self.cfg)
 
             self.output = self.get_output_node()
 
@@ -299,12 +308,18 @@ class ICNet_BN(Network):
         if mode == 'train':
             self.images, self.labels = image_reader.next_image, image_reader.next_label    
         
-            super().__init__(inputs={'data': self.images}, cfg=self.cfg)
+            if PYTHON_VERSION_3:
+                super().__init__(inputs={'data': self.images}, cfg=self.cfg)
+            else:
+                super(ICNet, self).__init__(inputs={'data': self.images}, cfg=self.cfg)
 
         elif mode == 'eval':
             self.images, self.labels = image_reader.next_image, image_reader.next_label    
         
-            super().__init__(inputs={'data': self.images}, cfg=self.cfg)
+            if PYTHON_VERSION_3:
+                super().__init__(inputs={'data': self.images}, cfg=self.cfg)
+            else:
+                super(ICNet, self).__init__(inputs={'data': self.images}, cfg=self.cfg)
             
             self.output = self.get_output_node()
 
@@ -313,7 +328,10 @@ class ICNet_BN(Network):
             self.img_placeholder = tf.placeholder(dtype=tf.float32, shape=cfg.INFER_SIZE)
             self.images, self.o_shape, self.n_shape = _infer_preprocess(self.img_placeholder)
             
-            super().__init__(inputs={'data': self.images}, cfg=self.cfg)
+            if PYTHON_VERSION_3:
+                super().__init__(inputs={'data': self.images}, cfg=self.cfg)
+            else:
+                super(ICNet, self).__init__(inputs={'data': self.images}, cfg=self.cfg)
 
             self.output = self.get_output_node()
 
