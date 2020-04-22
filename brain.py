@@ -49,7 +49,7 @@ class Brain:
         def reload(self):
             stat = os.stat(self.path)
             if stat.st_mtime != self.last_modified:
-                print 'reloading'
+                print ('reloading')
                 try:
                     with open(self.path) as f:
                         self.config = json.load(f)
